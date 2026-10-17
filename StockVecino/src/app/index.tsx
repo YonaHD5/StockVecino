@@ -1,11 +1,33 @@
 import { useRouter } from 'expo-router'; // Herramienta de navegación moderna de Expo
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter(); // Lo usamos para cambiar de pantalla
+
+  const iniciarSesion = async () => {
+    try {
+      // Usa la misma IP que te funcionó en el registro
+      const respuesta = await fetch('http://192.168.100.39:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
+      });
+
+      const datos = await respuesta.json();
+
+      if (respuesta.ok) {
+        Alert.alert('¡Bienvenido!', `Hola ${datos.nombre}, entraste como ${datos.perfil}`);
+        // Aquí después agregaremos router.push('/home') para ir a la tienda
+      } else {
+        Alert.alert('Error', datos.error);
+      }
+    } catch (error) {
+      Alert.alert('Error de conexión', 'No se pudo conectar al servidor');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -28,7 +50,7 @@ export default function LoginScreen() {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={() => console.log('Iniciar sesión presionado')}>
+      <TouchableOpacity style={styles.button} onPress={iniciarSesion}>
         <Text style={styles.buttonText}>Iniciar Sesión</Text>
       </TouchableOpacity>
 

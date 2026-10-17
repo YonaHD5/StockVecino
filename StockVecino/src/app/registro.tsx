@@ -1,11 +1,44 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegistroScreen() {
   const router = useRouter();
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
+
+  const registrarUsuario = async () => {
+  console.log('1. Botón presionado. Intentando enviar datos a la IP...');
+
+  try {
+    const respuesta = await fetch('http://192.168.100.39:3000/api/registro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre: nombre,
+        email: email,
+        password: password,
+        perfil: perfil,
+        aceptaPrivacidad: aceptaPrivacidad
+      })
+    });
+
+    console.log('3. Respuesta del servidor recibida. Estado:', respuesta.status);
+    const datos = await respuesta.json();
+
+    if (respuesta.ok) {
+      Alert.alert('¡Éxito!', 'Usuario registrado correctamente');
+      router.back();
+    } else {
+      Alert.alert('Error del Servidor', datos.error || 'No se pudo crear la cuenta');
+      console.log('Error procesando en backend:', datos);
+    }
+  } catch (error) {
+    Alert.alert('Error de Red', 'El celular no alcanza a la computadora.');
+    console.log('2. Error de Fetch (Red/Firewall):', error);
+  }
+};
+
   const [password, setPassword] = useState('');
   const [perfil, setPerfil] = useState('Cliente'); // Por defecto es Cliente
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
@@ -48,7 +81,7 @@ export default function RegistroScreen() {
       <TouchableOpacity 
         style={[styles.button, !aceptaPrivacidad && styles.buttonDisabled]} 
         disabled={!aceptaPrivacidad}
-        onPress={() => console.log('Registro exitoso como:', perfil)}>
+        onPress={registrarUsuario}>
         <Text style={styles.buttonText}>Registrarme</Text>
       </TouchableOpacity>
 
